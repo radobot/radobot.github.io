@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Unicode</title>
+	<style>
+		textarea { width: 100%; min-height: 10rem; line-height: 2; }
+		#ans { font-family: 'Consolas', 'Courier New', Courier, monospace; border-collapse: collapse; background-color: #fff; color: #000; }
+		#ans th, #ans td { border: 1px solid black; padding: 4px; }
+		#ans th, #ans td:first-child { text-align: center; }
+		#ans td:first-child { background-color: #ccc; }
+		#ans td:first-child span { background-color: #fff; color: #000; font-size: 2rem; }
+		tr.nfkd { background-color: #ccc; }
+		tr.ascii { color: #A00; }
+		tr.eu { color: #00F; }
+	</style>
+</head>
+<body>
+	<h1>Unicode</h1>
+	<textarea id="uni" placeholder="Type here..."></textarea>
+	<table id="ans">
+		<thead><tr><th>character</th><th>codepoint</th><th>name</th><th>block</th><th>plane</th><th>category</th><th>subcategory</th><th>script</th><th>NFKD</th></tr></thead>
+		<tbody></tbody>
+		<tfoot><tr><th>character</th><th>codepoint</th><th>name</th><th>block</th><th>plane</th><th>category</th><th>subcategory</th><th>script</th><th>NFKD</th></tr></tfoot>
+	</table>
+	<script src="unicodeData.js"></script>
+	<script src="unicodeCodePoints.js"></script>
+	<script>"use strict";
+
+		/** @type HTMLTextAreaElement */
+		const input = document.getElementById("uni"),
+			analysis = document.getElementById("ans").getElementsByTagName("tbody")[0];
+
+		function analyze(/** @type Event */ event) {
+			/** @type string */
+			const text = input.value;
+			analysis.replaceChildren();
+
+			fillTable(analysis, text);
+		}
+
+		function fillTable(/** @type HTMLTableSectionElement */ table, /** @type string */ text) {
+			for(const char of text) {
+				const norm = char.normalize("NFKD");
+				const denorm = (norm === char);
+
+				const row = generateRow(char, denorm ? null : norm);
+				table.appendChild(row);
+
+				if(!denorm) {
+					for(const nrm of norm) {
+						const extra = generateRow(nrm, null);
+						extra.className += " nfkd";
+						table.appendChild(extra);
+					}
+				}
+			}
+		}
+
+		function generateRow(/** @type string */ char, /** @type string | null */ norm) {
+			const codePoint = char.codePointAt(0) | 0;
+
+			const row = document.createElement("tr");
+
+			{ //character
+				const valueCell = document.createElement("td");
+				const valueSpan = document.createElement("span");
+				valueSpan.innerText = char;
+				valueCell.appendChild(valueSpan);
+				row.appendChild(valueCell);
+			}
+
+			{ //codepoint
+				const codeCell = document.createElement("td");
+				codeCell.innerText = "U+" + codePoint.toString(16).toUpperCase().padStart(6, "0");
+				row.appendChild(codeCell);
+			}
+
+			{ //name
+				const nameCell = document.createElement("td");
+				/** @type string | undefined */
+				let name;
+				if((codePoint & 0xFFFE) == 0xFFFE) {
+					name = "{noncharacter}";
+				} else {
+					name = codePointNames[codePoint];
+				}
+				nameCell.innerText = name || "";
+				row.appendChild(nameCell);
+			}
+
+			{ //block
+				const blockCell = document.createElement("td");
+				/** @type string | undefined */
+				let block;
+				if(codePoint < 0x200) { //vast majority of cases
+					block = Block[codePoint >> 7][2];
+				} else {
+					const cpid = codePoint >> 4;
+					let a = 0;
+					let b = blockCount - 1;
+					while(a != b) {
+						let c = (a + b) >> 1;
+						/** @type [number, number, string] */
+						const blk = Block[c];
+						if(cpid < blk[0]) {
+							b = c;
+							continue;
+						}
+						if(blk[1] < cpid) {
+							if(a == c) break; //nonexistent block
+							a = c;
+							continue;
+						}
+						block = blk[2];
+						break;
+					};
+				}
+
+				blockCell.innerText = block || "";
+				row.appendChild(blockCell);
+			}
+
+			{ //plane
+				const planeCell = document.createElement("td");
+				const planeId = codePoint >> 16;
+				planeCell.innerText = "#" + planeId + " " + (Plane[planeId] || "");
+				row.appendChild(planeCell);
+			}
+
+			{ //category, subcategory
+				let genCat = "", subCat = "";
+				for(const catNam in GeneralCategory) {
+					/** @type [RegExp, {[id: string]: RegExp}] */
+					const category = GeneralCategory[catNam];
+					if(category[0].test(char)) {
+						if(genCat) genCat += ";\n"; //in case of error
+						genCat += catNam + " " + generalCategoryNames[catNam];
+						const subcategories = category[1];
+						for(const subcategoryName in subcategories) {
+							const subcategory = subcategories[subcategoryName];
+							if(subcategory.test(char)) {
+								if(subCat) subCat += ";\n"; //in case of error
+								subCat += subcategoryName + " " + generalCategoryNames[subcategoryName];
+							}
+						}
+					}
+				}
+				const valueCategory = document.createElement("td");
+				valueCategory.innerText = genCat;
+				row.appendChild(valueCategory);
+				const valueSubcategory = document.createElement("td");
+				valueSubcategory.innerText = subCat;
+				row.appendChild(valueSubcategory);
+			}
+
+			{ //script
+				let scpt = "";
+				for(const scptNam in Script) {
+					/** @type RegExp */
+					const scp = Script[scptNam];
+					if(scp.test(char)) {
+						if(scpt) scpt += ";\n"; //in case of error
+						scpt += scptNam;
+					}
+				}
+				const valueScript = document.createElement("td");
+				valueScript.innerText = scpt;
+				row.appendChild(valueScript);
+			}
+
+			{ //NFKD
+				const valueNorm = document.createElement("td");
+				if(norm) {
+					for(const nrm of norm) {
+						if(valueNorm.innerText) valueNorm.innerText += " ";
+						valueNorm.innerText += "U+" + nrm.codePointAt(0).toString(16).toUpperCase().padStart(6, "0");
+					}
+				}
+				row.appendChild(valueNorm);
+			}
+
+			if(codePoint < 128)
+				row.className = "ascii";
+			else
+				if(codePoint < 0x180)
+					row.className = "eu";
+			return row;
+		}
+
+		input.oninput = analyze;
+	</script>
+</body>
+</html>
