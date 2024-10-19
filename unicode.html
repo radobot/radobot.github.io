@@ -4,11 +4,11 @@
 	<title>Unicode</title>
 	<style>
 		textarea { width: 100%; min-height: 10rem; line-height: 2; }
-		#ans { font-family: Consolas, 'Courier New', Courier, Unifont, monospace; border-collapse: collapse; background-color: #fff; color: #000; }
-		#ans th, #ans td { border: 1px solid black; padding: 4px; }
-		#ans th, #ans td:first-child { text-align: center; }
-		#ans td:first-child { background-color: #ccc; }
-		#ans td:first-child span { background-color: #fff; color: #000; font-size: 2rem; }
+		table { font-family: Consolas, 'Courier New', Courier, Unifont, monospace; border-collapse: collapse; background-color: #fff; color: #000; }
+		table th, table td { border: 1px solid black; padding: 4px; }
+		table th, table td:first-child { text-align: center; }
+		table td:first-child { background-color: #ccc; }
+		table td:first-child span { background-color: #fff; color: #000; font-size: 2rem; }
 		tr.nfkd { background-color: #ccc; }
 		tr.ascii { color: #A00; }
 		tr.eu { color: #00F; }
@@ -16,10 +16,10 @@
 </head>
 <body>
 	<h1>Unicode</h1>
-	<textarea id="uni" placeholder="Type here..."></textarea>
-	<table id="ans">
+	<textarea id="uinput" placeholder="Type here..."></textarea>
+	<table>
 		<thead><tr><th>character</th><th>codepoint</th><th>name</th><th>block</th><th>plane</th><th>category</th><th>subcategory</th><th>script</th><th>NFKD</th></tr></thead>
-		<tbody></tbody>
+		<tbody id="atab"></tbody>
 		<tfoot><tr><th>character</th><th>codepoint</th><th>name</th><th>block</th><th>plane</th><th>category</th><th>subcategory</th><th>script</th><th>NFKD</th></tr></tfoot>
 	</table>
 	<script src="unicodeData.js"></script>
@@ -27,15 +27,16 @@
 	<script>"use strict";
 
 		/** @type HTMLTextAreaElement */
-		const input = document.getElementById("uni"),
-			analysis = document.getElementById("ans").getElementsByTagName("tbody")[0];
+		const input = document.getElementById("uinput");
+		/** @type HTMLTableSectionElement */
+		const table = document.getElementById("atab");
 
 		function analyze(/** @type Event */ event) {
 			/** @type string */
 			const text = input.value;
-			analysis.replaceChildren();
+			table.replaceChildren();
 
-			fillTable(analysis, text);
+			fillTable(table, text);
 		}
 
 		function fillTable(/** @type HTMLTableSectionElement */ table, /** @type string */ text) {
