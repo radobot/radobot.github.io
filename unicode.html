@@ -17,6 +17,7 @@
 <body>
 	<h1>Unicode</h1>
 	<textarea id="uinput" placeholder="Type here..."></textarea>
+	<div>Normalise: <button id="toNFC" type="button">NFC</button> <button id="toNFD" type="button">NFD</button> <button id="toNFKC" type="button">NFKC</button> <button id="toNFKD" type="button">NFKD</button></div>
 	<table>
 		<thead><tr><th>character</th><th>codepoint</th><th>name</th><th>block</th><th>plane</th><th>category</th><th>subcategory</th><th>script</th><th>NFKD</th></tr></thead>
 		<tbody id="atab"></tbody>
@@ -189,6 +190,11 @@
 		}
 
 		input.oninput = analyze;
+
+		document.getElementById("toNFC").onclick = (e) => { input.value = input.value.normalize("NFC"); analyze(e); };
+		document.getElementById("toNFD").onclick = (e) => { input.value = input.value.normalize("NFD"); analyze(e); };
+		document.getElementById("toNFKC").onclick = (e) => { input.value = input.value.normalize("NFKC"); analyze(e); };
+		document.getElementById("toNFKD").onclick = (e) => { input.value = input.value.normalize("NFKD"); analyze(e); };
 	</script>
 </body>
 </html>
