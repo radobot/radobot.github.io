@@ -50,7 +50,7 @@
 				if(!denorm) {
 					for(const nrm of norm) {
 						const extra = generateRow(nrm, null);
-						extra.className += " nfkd";
+						extra.classList.add("nfkd");
 						table.appendChild(extra);
 					}
 				}
