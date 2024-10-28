@@ -42,7 +42,7 @@
 
 			{ //codepoint
 				const codeCell = document.createElement("td");
-				codeCell.innerText = "U+" + codePoint.toString(16).toUpperCase().padStart(6, "0");
+				codeCell.innerText = "U+" + codePoint.toString(16).toUpperCase().padStart(4, "0");
 				row.appendChild(codeCell);
 			}
 
@@ -86,7 +86,6 @@
 						break;
 					};
 				}
-
 				blockCell.innerText = block || "";
 				row.appendChild(blockCell);
 			}
@@ -144,7 +143,7 @@
 				if(norm) {
 					for(const nrm of norm) {
 						if(valueNorm.innerText) valueNorm.innerText += " ";
-						valueNorm.innerText += "U+" + nrm.codePointAt(0).toString(16).toUpperCase().padStart(6, "0");
+						valueNorm.innerText += "U+" + nrm.codePointAt(0).toString(16).toUpperCase().padStart(4, "0");
 					}
 				}
 				row.appendChild(valueNorm);
