@@ -1452,6 +1452,11 @@ const codePointNames = {
 	0x052F: "CYRILLIC SMALL LETTER EL WITH DESCENDER",
 
 
+	//Arabic
+	///Format character
+	0x061C: "[ARABIC LETTER MARK]",
+
+
 	//Combining Diacritical Marks Extended
 	///Used in German dialectology
 	0x1AB0: "COMBINING DOUBLED CIRCUMFLEX ACCENT",
@@ -2529,6 +2534,10 @@ const codePointNames = {
 	0xFF5E: "FULLWIDTH TILDE",
 
 	//Specials
+	///Interlinear annotation
+	0xFFF9: "[INTERLINEAR ANNOTATION ANCHOR]",
+	0xFFFA: "[INTERLINEAR ANNOTATION SEPARATOR]",
+	0xFFFB: "[INTERLINEAR ANNOTATION TERMINATOR]",
 	///Replacement characters
 	0xFFFC: "OBJECT REPLACEMENT CHARACTER",
 	0xFFFD: "REPLACEMENT CHARACTER",
