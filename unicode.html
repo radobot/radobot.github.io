@@ -231,8 +231,8 @@
 		document.getElementById("toNFD").onclick = (e) => { input.value = input.value.normalize("NFD"); analyze(e); };
 		document.getElementById("toNFKC").onclick = (e) => { input.value = input.value.normalize("NFKC"); analyze(e); };
 		document.getElementById("toNFKD").onclick = (e) => { input.value = input.value.normalize("NFKD"); analyze(e); };
-		document.getElementById("showNFD").onclick = (e) => { showNFD = e.target.checked; analyze(e); };
-		document.getElementById("showNFKD").onclick = (e) => { showNFKD = e.target.checked; analyze(e); };
+		document.getElementById("showNFD").onchange = (e) => { showNFD = e.target.checked; analyze(e); };
+		document.getElementById("showNFKD").onchange = (e) => { showNFKD = e.target.checked; analyze(e); };
 	</script>
 </body>
 </html>
