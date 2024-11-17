@@ -9,7 +9,8 @@
 		table th, table td:first-child { text-align: center; }
 		table td:first-child { background-color: #ccc; }
 		table td:first-child span { background-color: #fff; color: #000; font-size: 2rem; }
-		tr.nfkd { background-color: #ccc; }
+		tr.nfd { background-color: #ccc; }
+		tr.nfkd { background-color: #aaa; }
 		tr.ascii { color: #A00; }
 		tr.eu { color: #00F; }
 	</style>
@@ -17,17 +18,17 @@
 <body>
 	<h1>Unicode</h1>
 	<textarea id="uinput" placeholder="Type here..."></textarea>
-	<div>Normalise: <button id="toNFC" type="button">NFC</button> <button id="toNFD" type="button">NFD</button> <button id="toNFKC" type="button">NFKC</button> <button id="toNFKD" type="button">NFKD</button></div>
+	<div>Normalise: <button id="toNFC" type="button">NFC</button> <button id="toNFD" type="button">NFD</button> <button id="toNFKC" type="button">NFKC</button> <button id="toNFKD" type="button">NFKD</button> Show: <label><input id="showNFD" type="checkbox">NFD</label> <label><input id="showNFKD" type="checkbox">NFKD</label></div>
 	<table>
-		<thead><tr><th>character</th><th>codepoint</th><th>name</th><th>block</th><th>plane</th><th>category</th><th>subcategory</th><th>script</th><th>NFKD</th></tr></thead>
+		<thead><tr><th>character</th><th>codepoint</th><th>name</th><th>block</th><th>plane</th><th>category</th><th>subcategory</th><th>script</th><th>NFD</th><th>NFKD</th></tr></thead>
 		<tbody id="atab"></tbody>
-		<tfoot><tr><th>character</th><th>codepoint</th><th>name</th><th>block</th><th>plane</th><th>category</th><th>subcategory</th><th>script</th><th>NFKD</th></tr></tfoot>
+		<tfoot><tr><th>character</th><th>codepoint</th><th>name</th><th>block</th><th>plane</th><th>category</th><th>subcategory</th><th>script</th><th>NFD</th><th>NFKD</th></tr></tfoot>
 	</table>
 	<script src="unicodeData.js"></script>
 	<script src="unicodeCodePoints.js"></script>
 	<script>"use strict";
 
-		function generateRow(/** @type string */ char, /** @type string | null */ norm) {
+		function generateRow(/** @type string */ char, /** @type string | null */ normC, /** @type string | null */ normK) {
 			const codePoint = char.codePointAt(0) | 0;
 
 			const row = document.createElement("tr");
@@ -138,10 +139,21 @@
 				row.appendChild(valueScript);
 			}
 
+			{ //NFD
+				const valueNorm = document.createElement("td");
+				if(normC) {
+					for(const nrm of normC) {
+						if(valueNorm.innerText) valueNorm.innerText += " ";
+						valueNorm.innerText += "U+" + nrm.codePointAt(0).toString(16).toUpperCase().padStart(4, "0");
+					}
+				}
+				row.appendChild(valueNorm);
+			}
+
 			{ //NFKD
 				const valueNorm = document.createElement("td");
-				if(norm) {
-					for(const nrm of norm) {
+				if(normK) {
+					for(const nrm of normK) {
 						if(valueNorm.innerText) valueNorm.innerText += " ";
 						valueNorm.innerText += "U+" + nrm.codePointAt(0).toString(16).toUpperCase().padStart(4, "0");
 					}
@@ -159,17 +171,39 @@
 
 		function fillTable(/** @type HTMLTableSectionElement */ table, /** @type string */ text) {
 			for(const char of text) {
-				const norm = char.normalize("NFKD");
-				const denorm = (norm === char);
+				const normC = showNFD ? char.normalize("NFD") : char;
+				const normK = showNFKD ? char.normalize("NFKD") : normC;
+				const denormC = (normC === char);
+				const denormK = (normK === normC);
 
-				const row = generateRow(char, denorm ? null : norm);
+				const row = generateRow(char, denormC ? null : normC, denormK ? null : normK);
 				table.appendChild(row);
 
-				if(!denorm) {
-					for(const nrm of norm) {
-						const extra = generateRow(nrm, null);
-						extra.classList.add("nfkd");
-						table.appendChild(extra);
+				if(!denormC) {
+					for(const nrm of normC) {
+						const extraNorm = showNFKD ? nrm.normalize("NFKD") : nrm;
+						const exnorm = (extraNorm === nrm);
+
+						const nfd = generateRow(nrm, null, exnorm ? null : extraNorm);
+						nfd.classList.add("nfd");
+						table.appendChild(nfd);
+
+						if(!exnorm) {
+							for(const nrm of extraNorm) {
+								const nfkd = generateRow(nrm, null, null);
+								nfkd.classList.add("nfd");
+								nfkd.classList.add("nfkd");
+								table.appendChild(nfkd);
+							}
+						}
+					}
+				} else {
+					if(!denormK) {
+						for(const nrm of normK) {
+							const nfkd = generateRow(nrm, null, null);
+							nfkd.classList.add("nfkd");
+							table.appendChild(nfkd);
+						}
 					}
 				}
 			}
@@ -179,6 +213,9 @@
 		const input = document.getElementById("uinput");
 		/** @type HTMLTableSectionElement */
 		const table = document.getElementById("atab");
+
+		let showNFD = false;
+		let showNFKD = false;
 
 		function analyze(/** @type Event */ event) {
 			/** @type string */
@@ -194,6 +231,8 @@
 		document.getElementById("toNFD").onclick = (e) => { input.value = input.value.normalize("NFD"); analyze(e); };
 		document.getElementById("toNFKC").onclick = (e) => { input.value = input.value.normalize("NFKC"); analyze(e); };
 		document.getElementById("toNFKD").onclick = (e) => { input.value = input.value.normalize("NFKD"); analyze(e); };
+		document.getElementById("showNFD").onclick = (e) => { showNFD = e.target.checked; analyze(e); };
+		document.getElementById("showNFKD").onclick = (e) => { showNFKD = e.target.checked; analyze(e); };
 	</script>
 </body>
 </html>
