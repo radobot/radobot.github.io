@@ -52,6 +52,8 @@
 				/** @type string | undefined */
 				let name;
 				if((codePoint & 0xFFFE) == 0xFFFE) {
+					//the Unicode Standard: 23.7.1 Noncharacters: U+FFFE, U+FFFF, and Others
+					//https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-23/#G19653
 					name = "{noncharacter}";
 				} else {
 					name = codePointNames[codePoint];
