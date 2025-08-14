@@ -64,8 +64,7 @@
 
 			{ //block
 				const blockCell = document.createElement("td");
-				/** @type string | undefined */
-				let block;
+				let block = "No Block";
 				if(codePoint < 0x200) { //vast majority of cases
 					block = Block[codePoint >> 7][2];
 				} else {
